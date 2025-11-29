@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Английский с Еленой Владимировной</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #e0f7fa;
+    }
+    canvas {
+      display: block;
+    }
+    #instructions {
+      position: absolute;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      font-size: 16px;
+      color: #d81b60;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div id="instructions">👉 Нажми на экран, чтобы переключать разделы!</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// Палитра — ярко, но мило
+const colors = {
+  bg: '#e0f7fa',
+  text: '#263238',
+  accent1: '#ffab40', // жёлтый
+  accent2: '#4db6ac', // мятный
+  accent3: '#f06292', // розовый
+  star: '#ffd54f',
+  button: '#64b5f6'
+};
+
+// Данные репетитора
+const data = {
+  name: "Елена Владимировна",
+  email: "lenka.vdovina@mail.ru",
+  sections: [
+    {
+      title: "Привет!",
+      content: [
+        "Я — репетитор английского языка",
+        "Работаю с детьми 6–12 лет",
+        "Делаю уроки весёлыми и понятными!",
+        "Играем, поём, смотрим мультики — и учим язык!"
+      ],
+      icon: "👋"
+    },
+    {
+      title: "Чему учим?",
+      content: [
+        "✅ Английский алфавит и звуки",
+        "✅ Простые слова и фразы",
+        "✅ Песенки и рифмы",
+        "✅ Маленькие диалоги и сказки"
+      ],
+      icon: "📚"
+    },
+    {
+      title: "Формат занятий",
+      content: [
+        "🎮 Игровые задания",
+        "🎨 Раскраски и карточки",
+        "🎤 Пение и речь",
+        "💻 Онлайн или вживую — как вам удобно!"
+      ],
+      icon: "🎲"
+    },
+    {
+      title: "Родители говорят",
+      content: [
+        "\"Мой сын ждёт уроков!\"",
+        "\"Наконец-то учит английский с удовольствием!\"",
+        "\"Спасибо за тёплый подход!\"",
+        "🌟🌟🌟🌟🌟"
+      ],
+      icon: "😊"
+    },
+    {
+      title: "Связаться",
+      content: [
+        "📧 " + "lenka.vdovina@mail.ru",
+        "📱 По договорённости",
+        "📍 г. [Ваш город]",
+        "Запишитесь на пробный урок!"
+      ],
+      icon: "💌"
+    }
+  ]
+};
+
+let currentSection = 0;
+let bounceOffset = 0;
+let bounceDirection = 1;
+let bubbles = [];
+
+// Инициализация пузырей
+function initBubbles() {
+  bubbles = [];
+  for (let i = 0; i < 12; i++) {
+    bubbles.push({
+      x: Math.random() * canvas.width,
+      y: canvas.height + Math.random() * 100,
+      size: 10 + Math.random() * 20,
+      speed: 0.5 + Math.random() * 1,
+      color: colors['accent' + (Math.floor(Math.random() * 3) + 1)]
+    });
+  }
+}
+initBubbles();
+
+// Переключение по клику
+canvas.addEventListener('click', () => {
+  currentSection = (currentSection + 1) % data.sections.length;
+  bounceOffset = -30;
+  bounceDirection = 1;
+});
+
+// Анимация
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Фон
+  ctx.fillStyle = colors.bg;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Пузыри (парящие иконки)
+  bubbles.forEach(b => {
+    b.y -= b.speed;
+    if (b.y < -50) {
+      b.y = canvas.height + 30;
+      b.x = Math.random() * canvas.width;
+    }
+    ctx.globalAlpha = 0.7;
+    ctx.fillStyle = b.color;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+  ctx.globalAlpha = 1;
+
+  // Центр сцены
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+
+  // Анимация "прыжка" при переключении
+  if (bounceOffset !== 0) {
+    bounceOffset += bounceDirection * 2;
+    if (bounceOffset >= 0) {
+      bounceOffset = 0;
+      bounceDirection = 0;
+    }
+  }
+
+  // Заголовок
+  const section = data.sections[currentSection];
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = colors.text;
+  ctx.font = `bold ${Math.min(48, canvas.width / 10)}px 'Comic Sans MS', cursive`;
+  ctx.fillText(section.icon + " " + section.title, cx, cy - 150 + bounceOffset);
+
+  // Контент
+  ctx.fillStyle = colors.text;
+  ctx.font = `${Math.min(22, canvas.width / 22)}px 'Comic Sans MS', cursive`;
+  const lineHeight = 36;
+  section.content.forEach((line, i) => {
+    ctx.fillText(line, cx, cy - 40 + i * lineHeight);
+  });
+
+  // Имя внизу
+  ctx.font = `italic ${Math.min(20, canvas.width / 25)}px 'Comic Sans MS', cursive`;
+  ctx.fillStyle = colors.accent2;
+  ctx.fillText("— " + data.name, cx, canvas.height - 60);
+
+  // Декор: звёздочки по краям
+  for (let i = 0; i < 6; i++) {
+    const x = i % 2 === 0 ? 40 : canvas.width - 40;
+    const y = 80 + i * 80;
+    ctx.fillStyle = colors.star;
+    ctx.font = 'bold 24px Arial';
+    ctx.fillText('⭐', x, y);
+  }
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+
+// Обработка касаний на мобильных
+canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  currentSection = (currentSection + 1) % data.sections.length;
+  bounceOffset = -30;
+  bounceDirection = 1;
+});
+</script>
+</body>
+</html>
